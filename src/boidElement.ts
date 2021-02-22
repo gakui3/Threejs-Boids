@@ -3,12 +3,15 @@ import { MathUtils, RGBA_ASTC_10x10_Format, Scene, Vector3 } from 'three';
 import { SkeletonUtils } from '../node_modules/three/examples/jsm/utils/SkeletonUtils';
 
 class boidElement {
+  public rootObj: THREE.Object3D = new THREE.Object3D();
   _velocity = new Vector3(Math.random() - 0.2, 0, Math.random() - 0.2).normalize();
   _acceleration = new Vector3(Math.random() * 0.5, 0, Math.random() * 0.5);
-  _obj: THREE.Object3D = new THREE.Object3D();
+  _boidObj: THREE.Object3D = new THREE.Object3D();
   _forward: THREE.Vector3 = new THREE.Vector3(0, 0, 1);
-  get obj(): THREE.Object3D {
-    return this._obj;
+  accelerationHelper;
+  velocityHelper;
+  get boidObj(): THREE.Object3D {
+    return this._boidObj;
   }
   private get velocity(): THREE.Vector3 {
     return this._velocity.clone();
@@ -16,105 +19,142 @@ class boidElement {
   private get acceleration(): THREE.Vector3 {
     return this._acceleration.clone();
   }
-  private get forward(): THREE.Vector3 {
-    var dir = this._forward.applyQuaternion(this._obj.quaternion);
-    return dir;
-  }
 
   private mixer;
 
   public async init(objData: THREE.Object3D) {
     await Promise.resolve(SkeletonUtils.clone(objData)).then((cloneObj) => {
-      this._obj = cloneObj;
+      this._boidObj = cloneObj;
 
-      this._obj.animations = objData.animations;
-      this.mixer = new THREE.AnimationMixer(this._obj);
+      this._boidObj.animations = objData.animations;
+      this.mixer = new THREE.AnimationMixer(this.boidObj);
       this.mixer.timeScale = THREE.MathUtils.randFloat(1, 1.2);
 
-      //-------------add init rotation------------------------
-      let rotation = Math.random() * 2 * Math.PI;
-      let q = new THREE.Quaternion();
-      q.setFromAxisAngle(new Vector3(0, 1, 0), rotation);
-      this._obj.rotation.setFromQuaternion(q);
-      //------------------------------------------------------
-
-      const action = this.mixer.clipAction(this._obj.animations[0]);
+      const action = this.mixer.clipAction(this.boidObj.animations[0]);
       action.setLoop(THREE.LoopRepeat);
       const material = new THREE.MeshPhongMaterial({ color: 'rgb(255, 0, 0)' });
       material.skinning = true;
 
       action.play();
 
-      this._obj.traverse(function (child) {
+      this.boidObj.traverse(function (child) {
         if (child instanceof THREE.Mesh) {
           (<THREE.Mesh>child).material = material;
         }
       });
 
-      this._obj.scale.setScalar(0.05);
-      this._obj.position.set(
-        THREE.MathUtils.randFloat(-10, 10),
-        //THREE.MathUtils.randFloat(-10, 10),
-        0,
-        THREE.MathUtils.randFloat(-10, 10)
-      );
+      this.boidObj.scale.setScalar(0.05);
+      this.boidObj.position.set(0, 0, 0);
 
       //add axis
       // var axis = new THREE.AxesHelper(15);
       // cloneObj.add(axis);
-    });
-  }
 
-  addLineObj(startPos: THREE.Vector3, endPos: THREE.Vector3, color: THREE.Color) {
-    const mat = new THREE.LineBasicMaterial({
-      color: color,
+      this.accelerationHelper = new THREE.ArrowHelper(
+        this.acceleration,
+        this.rootObj.position,
+        1,
+        0xffff00,
+        0.5,
+        0.2
+      );
+      this.rootObj.attach(this.accelerationHelper);
+
+      this.velocityHelper = new THREE.ArrowHelper(
+        this.velocity,
+        this.rootObj.position,
+        1,
+        0xff0000,
+        0.5,
+        0.2
+      );
+      this.rootObj.attach(this.velocityHelper);
+
+      const radius = 2; //大きさ(半径)
+      const radials = 1; //円周の分割線数
+      const circles = 1; //半径の分割線数
+      const divisions = 50; //○角形数(○が多いほど円に近づく)
+      const gridHelper = new THREE.PolarGridHelper(
+        radius,
+        radials,
+        circles,
+        divisions,
+        0xffffff,
+        0xffffff
+      );
+      this.rootObj.add(gridHelper);
+      this.rootObj.attach(this.boidObj);
     });
-    const points: Vector3[] = [];
-    points.push(startPos);
-    points.push(endPos);
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const line = new THREE.Line(geometry, mat);
-    return line;
+
+    //-------------set init params------------------------
+    this.rootObj.position.set(
+      THREE.MathUtils.randFloat(-10, 10),
+      0,
+      THREE.MathUtils.randFloat(-10, 10)
+    );
+    //------------------------------------------------------
   }
 
   calcRotation() {
     let dot = this.velocity.normalize().dot(new Vector3(0, 0, 1));
     var rad = Math.acos(dot);
-    //var cross = this.velocity.cross(new THREE.Vector3(0, 0, 1));
     var cross = new THREE.Vector3(0, 0, 1).cross(this.velocity);
-    // console.log(cross);
 
     if (cross.y <= 0) {
       rad = Math.PI + (Math.PI - rad);
     }
 
     var q = new THREE.Quaternion();
-    q.setFromAxisAngle(this._obj.up, rad);
+    q.setFromAxisAngle(this.boidObj.up, rad);
     return q;
   }
 
-  public update(deltaTime, targetPosition: Vector3) {
+  separation(boids: boidElement[]): THREE.Vector3 {
+    var vec = new THREE.Vector3(0, 0, 0);
+    var count = 0;
+    boids.forEach((element) => {
+      if (this.rootObj == element.rootObj) return;
+
+      var myPos = this.rootObj.position.clone();
+      var elePos = element.rootObj.position.clone();
+      var dif = elePos.sub(myPos).multiplyScalar(-1);
+      var difLength = dif.length();
+
+      if (difLength > 4) return;
+      count += 1;
+      vec.add(dif.normalize().divideScalar(difLength * difLength));
+    });
+    return vec.multiplyScalar(10);
+  }
+
+  public update(deltaTime, targetPosition, boids: boidElement[]) {
     this.mixer.update(deltaTime);
 
     this._acceleration = targetPosition
       .clone()
-      .sub(this._obj.position)
-      .normalize()
-      .multiplyScalar(0.8);
+      .sub(this.rootObj.position)
+      // .normalize()
+      .multiplyScalar(0.1);
+
+    var sep = this.separation(boids);
+    this._acceleration.add(sep);
+
+    this.accelerationHelper.setDirection(this.acceleration);
+    this.accelerationHelper.setLength(this.acceleration.length(), 0.25, 0.2);
+
+    this.velocityHelper.setDirection(this.velocity);
+    this.velocityHelper.setLength(this.velocity.length(), 0.25, 0.2);
 
     //v = vo+at
     this._velocity = this.velocity.add(this.acceleration.multiplyScalar(deltaTime));
-    //console.log(this._obj.position);
 
-    // console.log(this.velocity);
     // x = vot+1/2at^2
     var pos = this.velocity
       .multiplyScalar(deltaTime)
-      .add(this.acceleration.multiplyScalar((1 / 2) * deltaTime * deltaTime));
+      .add(this.acceleration.multiplyScalar(0.5 * deltaTime * deltaTime));
 
-    var _q = this.calcRotation();
-    this._obj.rotation.setFromQuaternion(_q);
-    this._obj.position.add(pos);
+    this.boidObj.rotation.setFromQuaternion(this.calcRotation());
+    this.rootObj.position.add(pos);
   }
 }
 

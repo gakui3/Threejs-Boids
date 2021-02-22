@@ -20,7 +20,7 @@ import {
 import { boidElement } from './boidElement';
 
 const scene = new THREE.Scene();
-let camera, canvas, renderer, clock, fbxLoader, mixer, fishes, mousePos, target: Mesh;
+let camera, canvas, renderer, clock, fbxLoader, mixer, boids, mousePos, target: Mesh;
 
 let _tes: Vector3 = new THREE.Vector3(1, 1, 1);
 
@@ -30,7 +30,7 @@ function init() {
   renderer.setSize(800, 600);
   clock = new THREE.Clock();
   fbxLoader = new FBXLoader();
-  fishes = new Array();
+  boids = new Array();
   document.body.appendChild(renderer.domElement);
 
   canvas.addEventListener(
@@ -61,8 +61,8 @@ function update() {
   requestAnimationFrame(update);
 
   const delta = clock.getDelta();
-  for (const fish of fishes) {
-    fish.update(delta, target.position);
+  for (const fish of boids) {
+    fish.update(delta, target.position, boids);
   }
 
   renderer.render(scene, camera);
@@ -94,11 +94,11 @@ async function addFish() {
     baseObj = group;
   });
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 30; i++) {
     var fish = new boidElement();
     await fish.init(baseObj);
-    scene.add(fish.obj);
-    fishes.push(fish);
+    scene.add(fish.rootObj);
+    boids.push(fish);
   }
 }
 function getMousePosition(canvas, evt) {
@@ -108,7 +108,6 @@ function getMousePosition(canvas, evt) {
     y: evt.clientY - rect.top,
   };
 }
-
 (async function () {
   init();
   addCamera();
