@@ -108,7 +108,7 @@ async function addFish() {
   console.log(`load start`);
   var baseObj;
 
-  await fbxLoader.loadAsync('./assets/fish.fbx').then((group) => {
+  await fbxLoader.loadAsync('./assets/models/fish.fbx').then((group) => {
     baseObj = group;
   });
 
