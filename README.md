@@ -1,4 +1,4 @@
-This is a template project for running three.js in typescript.
+This is a Boids project for running three.js in typescript.
 
 
 install  
