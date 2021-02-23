@@ -3,6 +3,7 @@ import { FBXLoader } from '../node_modules/three/examples/jsm/loaders/FBXLoader'
 import { GLTFLoader } from '../node_modules/three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from '../node_modules/three/examples/jsm/controls/OrbitControls';
 import { SkeletonUtils } from '../node_modules/three/examples/jsm/utils/SkeletonUtils';
+import { GUI } from '../node_modules/three/examples/jsm/libs/dat.gui.module';
 import testVert from './shaders/test.vert';
 import testFrag from './shaders/test.frag';
 import {
@@ -20,7 +21,7 @@ import {
 import { boidElement } from './boidElement';
 
 const scene = new THREE.Scene();
-let camera, canvas, renderer, clock, fbxLoader, mixer, boids, mousePos, target: Mesh;
+let camera, canvas, renderer, clock, fbxLoader, mixer, boids, mousePos, gui: GUI, target: Mesh;
 
 let _tes: Vector3 = new THREE.Vector3(1, 1, 1);
 
@@ -86,6 +87,23 @@ function addCamera() {
   controls.target.set(0, 0, 0);
   controls.update();
 }
+function addGUI() {
+  const param = {
+    showVector: true,
+    showScopeOfForce: true,
+  };
+  gui = new GUI();
+  gui.add(param, 'showVector').onChange(() => {
+    boids.forEach((element) => {
+      element.switchShowVector();
+    });
+  });
+  gui.add(param, 'showScopeOfForce').onChange(() => {
+    boids.forEach((element) => {
+      element.switchShowScopeOfForce();
+    });
+  });
+}
 async function addFish() {
   console.log(`load start`);
   var baseObj;
@@ -94,7 +112,7 @@ async function addFish() {
     baseObj = group;
   });
 
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 15; i++) {
     var fish = new boidElement();
     await fish.init(baseObj);
     scene.add(fish.rootObj);
@@ -112,6 +130,7 @@ function getMousePosition(canvas, evt) {
   init();
   addCamera();
   addLight();
+  addGUI();
   await addFish();
   update();
 })();

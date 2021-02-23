@@ -4,12 +4,15 @@ import { SkeletonUtils } from '../node_modules/three/examples/jsm/utils/Skeleton
 
 class boidElement {
   public rootObj: THREE.Object3D = new THREE.Object3D();
+  public isShowVectorArrow: Boolean = new Boolean(false);
+
   _velocity = new Vector3(Math.random() - 0.2, 0, Math.random() - 0.2).normalize();
   _acceleration = new Vector3(Math.random() * 0.5, 0, Math.random() * 0.5);
   _boidObj: THREE.Object3D = new THREE.Object3D();
   _forward: THREE.Vector3 = new THREE.Vector3(0, 0, 1);
   accelerationHelper;
   velocityHelper;
+  scopeOfForceHelper;
   get boidObj(): THREE.Object3D {
     return this._boidObj;
   }
@@ -46,44 +49,7 @@ class boidElement {
       this.boidObj.scale.setScalar(0.05);
       this.boidObj.position.set(0, 0, 0);
 
-      //add axis
-      // var axis = new THREE.AxesHelper(15);
-      // cloneObj.add(axis);
-
-      this.accelerationHelper = new THREE.ArrowHelper(
-        this.acceleration,
-        this.rootObj.position,
-        1,
-        0xffff00,
-        0.5,
-        0.2
-      );
-      this.rootObj.attach(this.accelerationHelper);
-
-      this.velocityHelper = new THREE.ArrowHelper(
-        this.velocity,
-        this.rootObj.position,
-        1,
-        0xff0000,
-        0.5,
-        0.2
-      );
-      this.rootObj.attach(this.velocityHelper);
-
-      const radius = 2; //大きさ(半径)
-      const radials = 1; //円周の分割線数
-      const circles = 1; //半径の分割線数
-      const divisions = 50; //○角形数(○が多いほど円に近づく)
-      const gridHelper = new THREE.PolarGridHelper(
-        radius,
-        radials,
-        circles,
-        divisions,
-        0xffffff,
-        0xffffff
-      );
-      this.rootObj.add(gridHelper);
-      this.rootObj.attach(this.boidObj);
+      this.addDebugUtils();
     });
 
     //-------------set init params------------------------
@@ -93,6 +59,15 @@ class boidElement {
       THREE.MathUtils.randFloat(-10, 10)
     );
     //------------------------------------------------------
+  }
+
+  public switchShowVector() {
+    this.accelerationHelper.visible = !this.accelerationHelper.visible;
+    this.velocityHelper.visible = !this.velocityHelper.visible;
+  }
+
+  public switchShowScopeOfForce() {
+    this.scopeOfForceHelper.visible = !this.scopeOfForceHelper.visible;
   }
 
   calcRotation() {
@@ -125,6 +100,43 @@ class boidElement {
       vec.add(dif.normalize().divideScalar(difLength * difLength));
     });
     return vec.multiplyScalar(10);
+  }
+
+  addDebugUtils() {
+    this.accelerationHelper = new THREE.ArrowHelper(
+      this.acceleration,
+      this.rootObj.position,
+      1,
+      0xffff00,
+      0.5,
+      0.2
+    );
+    this.rootObj.attach(this.accelerationHelper);
+
+    this.velocityHelper = new THREE.ArrowHelper(
+      this.velocity,
+      this.rootObj.position,
+      1,
+      0xff0000,
+      0.5,
+      0.2
+    );
+    this.rootObj.attach(this.velocityHelper);
+
+    const radius = 2; //大きさ(半径)
+    const radials = 1; //円周の分割線数
+    const circles = 1; //半径の分割線数
+    const divisions = 50; //○角形数(○が多いほど円に近づく)
+    this.scopeOfForceHelper = new THREE.PolarGridHelper(
+      radius,
+      radials,
+      circles,
+      divisions,
+      0xffffff,
+      0xffffff
+    );
+    this.rootObj.add(this.scopeOfForceHelper);
+    this.rootObj.attach(this.boidObj);
   }
 
   public update(deltaTime, targetPosition, boids: boidElement[]) {
