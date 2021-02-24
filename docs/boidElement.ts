@@ -208,6 +208,7 @@ class boidElement {
 
     //v = vo+at
     this._velocity = this.velocity.add(this.acceleration.multiplyScalar(deltaTime));
+    this._velocity.clampLength(0, 4);
 
     // x = vot+1/2at^2
     var pos = this.velocity
