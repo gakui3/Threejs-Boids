@@ -99,7 +99,29 @@ class boidElement {
       count += 1;
       vec.add(dif.normalize().divideScalar(difLength * difLength));
     });
-    return vec.multiplyScalar(10);
+    return vec.multiplyScalar(5);
+  }
+
+  alignment(boids: boidElement[]): THREE.Vector3 {
+    var vec = new THREE.Vector3(0, 0, 0);
+    var count = 0;
+    boids.forEach((element) => {
+      if (this.rootObj == element.rootObj) return;
+
+      var myPos = this.rootObj.position.clone();
+      var elePos = element.rootObj.position.clone();
+      var dif = elePos.sub(myPos);
+      var difLength = dif.length();
+
+      if (difLength > 3) return;
+      count += 1;
+      vec.add(element.velocity);
+    });
+    if (count == 0) return vec;
+
+    var averageVelocity = vec.divideScalar(count);
+    var myVelocity = this.velocity;
+    return averageVelocity.sub(myVelocity).multiplyScalar(0.5);
   }
 
   addDebugUtils() {
@@ -146,10 +168,12 @@ class boidElement {
       .clone()
       .sub(this.rootObj.position)
       // .normalize()
-      .multiplyScalar(0.1);
+      .multiplyScalar(0.2);
 
     var sep = this.separation(boids);
-    this._acceleration.add(sep);
+    var ali = this.alignment(boids);
+
+    this._acceleration.add(sep).add(ali);
 
     this.accelerationHelper.setDirection(this.acceleration);
     this.accelerationHelper.setLength(this.acceleration.length(), 0.25, 0.2);

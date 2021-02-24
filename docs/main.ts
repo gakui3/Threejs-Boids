@@ -126,6 +126,7 @@ function getMousePosition(canvas, evt) {
     y: evt.clientY - rect.top,
   };
 }
+
 (async function () {
   init();
   addCamera();
