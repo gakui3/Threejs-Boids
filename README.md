@@ -1,4 +1,4 @@
-This is a Boids project for running three.js in typescript.<br>
+This is a Boids project of three.js.<br>
 https://gakui3.github.io/Threejs-Boids/
 
 
