@@ -98,7 +98,7 @@ function addLight() {
 }
 function addCamera() {
   camera = new THREE.PerspectiveCamera(45, 800 / 600, 0.1, 100);
-  camera.position.set(0, 15, 0);
+  camera.position.set(0, 18, 0);
   camera.rotateX(Math.PI * 0.5);
   camera.aspect = canvas.clientWidth / canvas.clientHeight;
   const material = new THREE.MeshPhongMaterial({ color: 0xff0000 });
@@ -132,7 +132,7 @@ async function addFish() {
     baseObj = group;
   });
 
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 60; i++) {
     var fish = new boidElement();
     await fish.init(baseObj);
     scene.add(fish.rootObj);
