@@ -132,7 +132,7 @@ async function addFish() {
     baseObj = group;
   });
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 60; i++) {
     var fish = new boidElement();
     await fish.init(baseObj);
     scene.add(fish.rootObj);
