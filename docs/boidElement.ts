@@ -193,11 +193,12 @@ class boidElement {
 
     this._acceleration = targetPosition.clone().sub(this.rootObj.position).multiplyScalar(0.2);
 
-    var separation = this.separation(boids).multiplyScalar(10);
+    var separation = this.separation(boids).multiplyScalar(15);
     var alignment = this.alignment(boids).multiplyScalar(5);
     var cohesion = this.cohesion(boids).multiplyScalar(3);
 
-    this._acceleration.add(separation).add(alignment).add(cohesion);
+    this._acceleration.add(separation.add(alignment).add(cohesion));
+    this._acceleration.divideScalar(18);
 
     this.accelerationHelper.setDirection(this.acceleration);
     this.accelerationHelper.setLength(this.acceleration.length(), 0.25, 0.2);
