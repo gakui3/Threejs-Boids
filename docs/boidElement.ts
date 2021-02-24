@@ -95,7 +95,7 @@ class boidElement {
       var dif = elePos.sub(myPos).multiplyScalar(-1);
       var difLength = dif.length();
 
-      if (difLength > 4) return;
+      if (difLength > 2) return;
 
       count += 1;
       vec.add(dif.normalize().divideScalar(difLength * difLength));
@@ -116,7 +116,7 @@ class boidElement {
       var dif = elePos.sub(myPos);
       var difLength = dif.length();
 
-      if (difLength > 4) return;
+      if (difLength > 2) return;
 
       count += 1;
       vec.add(element.velocity);
@@ -140,7 +140,7 @@ class boidElement {
       var dif = elePos.sub(myPos);
       var difLength = dif.length();
 
-      if (difLength > 4) return;
+      if (difLength > 2) return;
 
       count += 1;
       vec.add(elePos);
@@ -191,11 +191,11 @@ class boidElement {
   public update(deltaTime, targetPosition, boids: boidElement[]) {
     this.mixer.update(deltaTime);
 
-    this._acceleration = targetPosition.clone().sub(this.rootObj.position).multiplyScalar(0.2);
+    this._acceleration = targetPosition.clone().sub(this.rootObj.position).multiplyScalar(0.1);
 
     var separation = this.separation(boids).multiplyScalar(15);
-    var alignment = this.alignment(boids).multiplyScalar(5);
-    var cohesion = this.cohesion(boids).multiplyScalar(3);
+    var alignment = this.alignment(boids).multiplyScalar(2);
+    var cohesion = this.cohesion(boids).multiplyScalar(1);
 
     this._acceleration.add(separation.add(alignment).add(cohesion));
     this._acceleration.divideScalar(18);
