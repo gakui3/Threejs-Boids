@@ -49,7 +49,7 @@ function init() {
 
   scene.background = new THREE.Color(0xa0a0a0);
 
-  var geometry = new THREE.SphereGeometry(0.5);
+  var geometry = new THREE.SphereGeometry(0.25);
   target = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial());
   scene.add(target);
 
@@ -98,7 +98,8 @@ function addLight() {
 }
 function addCamera() {
   camera = new THREE.PerspectiveCamera(45, 800 / 600, 0.1, 100);
-  camera.position.set(0, 0, 5);
+  camera.position.set(0, 15, 0);
+  camera.rotateX(Math.PI * 0.5);
   camera.aspect = canvas.clientWidth / canvas.clientHeight;
   const material = new THREE.MeshPhongMaterial({ color: 0xff0000 });
 
@@ -108,8 +109,8 @@ function addCamera() {
 }
 function addGUI() {
   const param = {
-    showVector: true,
-    showScopeOfForce: true,
+    showVector: false,
+    showScopeOfForce: false,
   };
   gui = new GUI();
   gui.add(param, 'showVector').onChange(() => {

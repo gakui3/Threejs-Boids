@@ -186,6 +186,10 @@ class boidElement {
     );
     this.rootObj.add(this.scopeOfForceHelper);
     this.rootObj.attach(this.boidObj);
+
+    this.accelerationHelper.visible = false;
+    this.velocityHelper.visible = false;
+    this.scopeOfForceHelper.visible = false;
   }
 
   public update(deltaTime, targetPosition, boids: boidElement[]) {
