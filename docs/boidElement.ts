@@ -96,10 +96,13 @@ class boidElement {
       var difLength = dif.length();
 
       if (difLength > 4) return;
+
       count += 1;
       vec.add(dif.normalize().divideScalar(difLength * difLength));
     });
-    return vec.multiplyScalar(5);
+    if (count == 0) return vec;
+
+    return vec.divideScalar(count);
   }
 
   alignment(boids: boidElement[]): THREE.Vector3 {
@@ -113,7 +116,8 @@ class boidElement {
       var dif = elePos.sub(myPos);
       var difLength = dif.length();
 
-      if (difLength > 3) return;
+      if (difLength > 4) return;
+
       count += 1;
       vec.add(element.velocity);
     });
@@ -121,7 +125,30 @@ class boidElement {
 
     var averageVelocity = vec.divideScalar(count);
     var myVelocity = this.velocity;
-    return averageVelocity.sub(myVelocity).multiplyScalar(0.5);
+    return averageVelocity.sub(myVelocity);
+  }
+
+  cohesion(boids: boidElement[]): THREE.Vector3 {
+    var vec = new THREE.Vector3(0, 0, 0);
+    var count = 0;
+    var myPos = this.rootObj.position.clone();
+
+    boids.forEach((element) => {
+      if (this.rootObj == element.rootObj) return;
+
+      var elePos = element.rootObj.position.clone();
+      var dif = elePos.sub(myPos);
+      var difLength = dif.length();
+
+      if (difLength > 4) return;
+
+      count += 1;
+      vec.add(elePos);
+    });
+    if (count == 0) return vec;
+
+    var averagePos = vec.divideScalar(count);
+    return averagePos.sub(myPos);
   }
 
   addDebugUtils() {
@@ -164,16 +191,13 @@ class boidElement {
   public update(deltaTime, targetPosition, boids: boidElement[]) {
     this.mixer.update(deltaTime);
 
-    this._acceleration = targetPosition
-      .clone()
-      .sub(this.rootObj.position)
-      // .normalize()
-      .multiplyScalar(0.2);
+    this._acceleration = targetPosition.clone().sub(this.rootObj.position).multiplyScalar(0.2);
 
-    var sep = this.separation(boids);
-    var ali = this.alignment(boids);
+    var separation = this.separation(boids).multiplyScalar(10);
+    var alignment = this.alignment(boids).multiplyScalar(5);
+    var cohesion = this.cohesion(boids).multiplyScalar(3);
 
-    this._acceleration.add(sep).add(ali);
+    this._acceleration.add(separation).add(alignment).add(cohesion);
 
     this.accelerationHelper.setDirection(this.acceleration);
     this.accelerationHelper.setLength(this.acceleration.length(), 0.25, 0.2);
