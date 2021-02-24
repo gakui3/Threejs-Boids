@@ -10,6 +10,7 @@ class boidElement {
   public cohesionWeight = 5;
   public toTargetWeight = 0.2;
   public scopeRadius = 2;
+  public velocityRange = { min: 0.4, max: 4 };
 
   _velocity = new Vector3(Math.random() - 0.5, 0, Math.random() - 0.5).normalize();
   _acceleration = new Vector3(Math.random() * 0.5, 0, Math.random() * 0.5);
@@ -219,7 +220,7 @@ class boidElement {
 
     //v = vo+at
     this._velocity = this.velocity.add(this.acceleration.multiplyScalar(deltaTime));
-    this._velocity.clampLength(0.4, 3);
+    this._velocity.clampLength(this.velocityRange.min, this.velocityRange.max);
     this.mixer.timeScale = THREE.MathUtils.mapLinear(this.velocity.length(), 0.4, 3, 0.8, 3);
 
     // x = vot+1/2at^2

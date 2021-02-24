@@ -111,13 +111,16 @@ function addGUI() {
   const param = {
     showVector: false,
     showScopeOfForce: false,
-    separatioWeight: 10,
-    alignmentWeight: 5,
-    cohesionWeight: 5,
+    separatioWeight: 10.0,
+    alignmentWeight: 5.0,
+    cohesionWeight: 5.0,
     toTargetWeight: 0.2,
-    scopeRadius: 2,
+    scopeRadius: 2.0,
+    velocityRangeMin: 0.3,
+    velocityRangeMax: 4.0,
   };
   gui = new GUI();
+  gui.width = 300;
   gui.add(param, 'showVector').onChange(() => {
     boids.forEach((element) => {
       element.switchShowVector();
@@ -151,6 +154,16 @@ function addGUI() {
   gui.add(param, 'scopeRadius', 1, 10).onChange((value) => {
     boids.forEach((element) => {
       element.scopeRadius = value;
+    });
+  });
+  gui.add(param, 'velocityRangeMin', 0.1, 2).onChange((value) => {
+    boids.forEach((element) => {
+      element.velocityRange.min = value;
+    });
+  });
+  gui.add(param, 'velocityRangeMax', 2, 10).onChange((value) => {
+    boids.forEach((element) => {
+      element.velocityRange.max = value;
     });
   });
 }
