@@ -6,7 +6,7 @@ class boidElement {
   public rootObj: THREE.Object3D = new THREE.Object3D();
   public isShowVectorArrow: Boolean = new Boolean(false);
 
-  _velocity = new Vector3(Math.random() - 0.2, 0, Math.random() - 0.2).normalize();
+  _velocity = new Vector3(Math.random() - 0.5, 0, Math.random() - 0.5).normalize();
   _acceleration = new Vector3(Math.random() * 0.5, 0, Math.random() * 0.5);
   _boidObj: THREE.Object3D = new THREE.Object3D();
   _forward: THREE.Vector3 = new THREE.Vector3(0, 0, 1);
@@ -86,52 +86,50 @@ class boidElement {
 
   separation(boids: boidElement[]): THREE.Vector3 {
     var vec = new THREE.Vector3(0, 0, 0);
-    var count = 0;
-    boids.forEach((element) => {
-      if (this.rootObj == element.rootObj) return;
+    var myPos = this.rootObj.position.clone();
+    if (boids.length == 0) return vec;
 
-      var myPos = this.rootObj.position.clone();
+    boids.forEach((element) => {
       var elePos = element.rootObj.position.clone();
       var dif = elePos.sub(myPos).multiplyScalar(-1);
       var difLength = dif.length();
 
-      if (difLength > 2) return;
-
-      count += 1;
       vec.add(dif.normalize().divideScalar(difLength * difLength));
     });
-    if (count == 0) return vec;
 
-    return vec.divideScalar(count);
+    return vec.divideScalar(boids.length);
   }
 
   alignment(boids: boidElement[]): THREE.Vector3 {
     var vec = new THREE.Vector3(0, 0, 0);
-    var count = 0;
+    if (boids.length == 0) return vec;
+
     boids.forEach((element) => {
-      if (this.rootObj == element.rootObj) return;
-
-      var myPos = this.rootObj.position.clone();
-      var elePos = element.rootObj.position.clone();
-      var dif = elePos.sub(myPos);
-      var difLength = dif.length();
-
-      if (difLength > 2) return;
-
-      count += 1;
       vec.add(element.velocity);
     });
-    if (count == 0) return vec;
 
-    var averageVelocity = vec.divideScalar(count);
+    var averageVelocity = vec.divideScalar(boids.length);
     var myVelocity = this.velocity;
     return averageVelocity.sub(myVelocity);
   }
 
   cohesion(boids: boidElement[]): THREE.Vector3 {
     var vec = new THREE.Vector3(0, 0, 0);
-    var count = 0;
     var myPos = this.rootObj.position.clone();
+    if (boids.length == 0) return vec;
+
+    boids.forEach((element) => {
+      var elePos = element.rootObj.position.clone();
+      vec.add(elePos);
+    });
+
+    var averagePos = vec.divideScalar(boids.length);
+    return averagePos.sub(myPos);
+  }
+
+  setBoidsInScope(boids: boidElement[]): boidElement[] {
+    var myPos = this.rootObj.position.clone();
+    var boidsInScope: boidElement[] = [];
 
     boids.forEach((element) => {
       if (this.rootObj == element.rootObj) return;
@@ -142,13 +140,10 @@ class boidElement {
 
       if (difLength > 2) return;
 
-      count += 1;
-      vec.add(elePos);
+      boidsInScope.push(element);
     });
-    if (count == 0) return vec;
 
-    var averagePos = vec.divideScalar(count);
-    return averagePos.sub(myPos);
+    return boidsInScope;
   }
 
   addDebugUtils() {
@@ -197,9 +192,11 @@ class boidElement {
 
     this._acceleration = targetPosition.clone().sub(this.rootObj.position).multiplyScalar(0.1);
 
-    var separation = this.separation(boids).multiplyScalar(15);
-    var alignment = this.alignment(boids).multiplyScalar(2);
-    var cohesion = this.cohesion(boids).multiplyScalar(1);
+    var boidsInScope = this.setBoidsInScope(boids);
+
+    var separation = this.separation(boidsInScope).multiplyScalar(15);
+    var alignment = this.alignment(boidsInScope).multiplyScalar(2);
+    var cohesion = this.cohesion(boidsInScope).multiplyScalar(3);
 
     this._acceleration.add(separation.add(alignment).add(cohesion));
     this._acceleration.divideScalar(18);
@@ -211,7 +208,6 @@ class boidElement {
     this.velocityHelper.setLength(this.velocity.length(), 0.25, 0.2);
 
     //v = vo+at
-    var beforeVelocity = this.velocity;
     this._velocity = this.velocity.add(this.acceleration.multiplyScalar(deltaTime));
     this._velocity.clampLength(0.4, 3);
     this.mixer.timeScale = THREE.MathUtils.mapLinear(this.velocity.length(), 0.4, 3, 0.8, 3);
