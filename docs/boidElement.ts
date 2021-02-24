@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { MathUtils, RGBA_ASTC_10x10_Format, Scene, Vector3 } from 'three';
-import { SkeletonUtils } from '../node_modules/three/examples/jsm/utils/SkeletonUtils';
+import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils';
 
 class boidElement {
   public rootObj: THREE.Object3D = new THREE.Object3D();

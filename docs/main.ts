@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { FBXLoader } from '../node_modules/three/examples/jsm/loaders/FBXLoader';
-import { GLTFLoader } from '../node_modules/three/examples/jsm/loaders/GLTFLoader.js';
-import { OrbitControls } from '../node_modules/three/examples/jsm/controls/OrbitControls';
-import { SkeletonUtils } from '../node_modules/three/examples/jsm/utils/SkeletonUtils';
-import { GUI } from '../node_modules/three/examples/jsm/libs/dat.gui.module';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils';
+import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
 import testVert from './shaders/test.vert';
 import testFrag from './shaders/test.frag';
 import {
