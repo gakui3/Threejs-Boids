@@ -28,7 +28,6 @@ let _tes: Vector3 = new THREE.Vector3(1, 1, 1);
 function init() {
   canvas = document.querySelector('#c');
   renderer = new THREE.WebGLRenderer({ canvas });
-  renderer.setSize(800, 600);
   clock = new THREE.Clock();
   fbxLoader = new FBXLoader();
   boids = new Array();
@@ -58,8 +57,27 @@ function init() {
   const vOB = new THREE.Vector2(1, 1);
   const vOC = vOA.sub(vOB);
 }
+
+function resizeRendererToDisplaySize(renderer) {
+  const canvas = renderer.domElement;
+  const pixelRatio = window.devicePixelRatio;
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  const needResize = canvas.width !== width || canvas.height !== height;
+  if (needResize) {
+    renderer.setSize(width, height, false);
+  }
+  return needResize;
+}
+
 function update() {
   requestAnimationFrame(update);
+
+  if (resizeRendererToDisplaySize(renderer)) {
+    const canvas = renderer.domElement;
+    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+    camera.updateProjectionMatrix();
+  }
 
   const delta = clock.getDelta();
   for (const fish of boids) {
@@ -81,6 +99,7 @@ function addLight() {
 function addCamera() {
   camera = new THREE.PerspectiveCamera(45, 800 / 600, 0.1, 100);
   camera.position.set(0, 0, 5);
+  camera.aspect = canvas.clientWidth / canvas.clientHeight;
   const material = new THREE.MeshPhongMaterial({ color: 0xff0000 });
 
   const controls = new OrbitControls(camera, canvas);
