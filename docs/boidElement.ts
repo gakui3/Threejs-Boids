@@ -5,6 +5,11 @@ import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils';
 class boidElement {
   public rootObj: THREE.Object3D = new THREE.Object3D();
   public isShowVectorArrow: Boolean = new Boolean(false);
+  public separatioWeight = 10;
+  public alignmentWeight = 5;
+  public cohesionWeight = 5;
+  public toTargetWeight = 0.2;
+  public scopeRadius = 2;
 
   _velocity = new Vector3(Math.random() - 0.5, 0, Math.random() - 0.5).normalize();
   _acceleration = new Vector3(Math.random() * 0.5, 0, Math.random() * 0.5);
@@ -138,7 +143,7 @@ class boidElement {
       var dif = elePos.sub(myPos);
       var difLength = dif.length();
 
-      if (difLength > 2) return;
+      if (difLength > this.scopeRadius) return;
 
       boidsInScope.push(element);
     });
@@ -167,7 +172,7 @@ class boidElement {
     );
     this.rootObj.attach(this.velocityHelper);
 
-    const radius = 2; //大きさ(半径)
+    const radius = this.scopeRadius; //大きさ(半径)
     const radials = 1; //円周の分割線数
     const circles = 1; //半径の分割線数
     const divisions = 50; //○角形数(○が多いほど円に近づく)
@@ -190,16 +195,21 @@ class boidElement {
   public update(deltaTime, targetPosition, boids: boidElement[]) {
     this.mixer.update(deltaTime);
 
-    this._acceleration = targetPosition.clone().sub(this.rootObj.position).multiplyScalar(0.1);
+    this._acceleration = targetPosition
+      .clone()
+      .sub(this.rootObj.position)
+      .multiplyScalar(this.toTargetWeight);
 
     var boidsInScope = this.setBoidsInScope(boids);
 
-    var separation = this.separation(boidsInScope).multiplyScalar(15);
-    var alignment = this.alignment(boidsInScope).multiplyScalar(2);
-    var cohesion = this.cohesion(boidsInScope).multiplyScalar(3);
+    var separation = this.separation(boidsInScope).multiplyScalar(this.separatioWeight);
+    var alignment = this.alignment(boidsInScope).multiplyScalar(this.alignmentWeight);
+    var cohesion = this.cohesion(boidsInScope).multiplyScalar(this.cohesionWeight);
 
     this._acceleration.add(separation.add(alignment).add(cohesion));
-    this._acceleration.divideScalar(18);
+    this._acceleration.divideScalar(
+      this.separatioWeight + this.alignmentWeight + this.cohesionWeight
+    );
 
     this.accelerationHelper.setDirection(this.acceleration);
     this.accelerationHelper.setLength(this.acceleration.length(), 0.25, 0.2);

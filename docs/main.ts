@@ -111,6 +111,11 @@ function addGUI() {
   const param = {
     showVector: false,
     showScopeOfForce: false,
+    separatioWeight: 10,
+    alignmentWeight: 5,
+    cohesionWeight: 5,
+    toTargetWeight: 0.2,
+    scopeRadius: 2,
   };
   gui = new GUI();
   gui.add(param, 'showVector').onChange(() => {
@@ -121,6 +126,31 @@ function addGUI() {
   gui.add(param, 'showScopeOfForce').onChange(() => {
     boids.forEach((element) => {
       element.switchShowScopeOfForce();
+    });
+  });
+  gui.add(param, 'separatioWeight', 1, 50).onChange((value) => {
+    boids.forEach((element) => {
+      element.separatioWeight = value;
+    });
+  });
+  gui.add(param, 'alignmentWeight', 1, 50).onChange((value) => {
+    boids.forEach((element) => {
+      element.alignmentWeight = value;
+    });
+  });
+  gui.add(param, 'cohesionWeight', 1, 50).onChange((value) => {
+    boids.forEach((element) => {
+      element.cohesionWeight = value;
+    });
+  });
+  gui.add(param, 'toTargetWeight', 0.1, 5).onChange((value) => {
+    boids.forEach((element) => {
+      element.toTargetWeight = value;
+    });
+  });
+  gui.add(param, 'scopeRadius', 1, 10).onChange((value) => {
+    boids.forEach((element) => {
+      element.scopeRadius = value;
     });
   });
 }
