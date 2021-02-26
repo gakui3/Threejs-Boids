@@ -220,8 +220,9 @@ class boidElement {
 
     //v = vo+at
     this._velocity = this.velocity.add(this.acceleration.multiplyScalar(deltaTime));
+
     this._velocity.clampLength(this.velocityRange.min, this.velocityRange.max);
-    this.mixer.timeScale = THREE.MathUtils.mapLinear(this.velocity.length(), 0.4, 3, 0.8, 3);
+    this.mixer.timeScale = THREE.MathUtils.mapLinear(this.velocity.length(), 0.4, 3, 1.5, 4);
 
     // x = vot+1/2at^2
     var pos = this.velocity
