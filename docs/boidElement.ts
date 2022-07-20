@@ -4,6 +4,7 @@ import { SkeletonUtils } from 'three/examples/jsm/utils/SkeletonUtils';
 
 class boidElement {
   public rootObj: THREE.Object3D = new THREE.Object3D();
+  public _rootObj: THREE.Object3D = new THREE.Object3D();
   public isShowVectorArrow: Boolean = new Boolean(false);
   public separatioWeight = 10;
   public alignmentWeight = 5;
@@ -12,8 +13,8 @@ class boidElement {
   public scopeRadius = 2;
   public velocityRange = { min: 0.4, max: 4 };
 
-  _velocity = new Vector3(Math.random() - 0.5, 0, Math.random() - 0.5).normalize();
-  _acceleration = new Vector3(Math.random() * 0.5, 0, Math.random() * 0.5);
+  _velocity = new Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+  _acceleration = new Vector3(Math.random() * 0.5, Math.random() * 0.5, Math.random() * 0.5);
   _boidObj: THREE.Object3D = new THREE.Object3D();
   _forward: THREE.Vector3 = new THREE.Vector3(0, 0, 1);
   accelerationHelper;
@@ -61,7 +62,7 @@ class boidElement {
     //-------------set init params------------------------
     this.rootObj.position.set(
       THREE.MathUtils.randFloat(-10, 10),
-      0,
+      THREE.MathUtils.randFloat(-10, 10),//0,
       THREE.MathUtils.randFloat(-10, 10)
     );
     //------------------------------------------------------
@@ -76,18 +77,29 @@ class boidElement {
     this.scopeOfForceHelper.visible = !this.scopeOfForceHelper.visible;
   }
 
-  calcRotation() {
-    let dot = this.velocity.normalize().dot(new Vector3(0, 0, 1));
-    var rad = Math.acos(dot);
-    var cross = new THREE.Vector3(0, 0, 1).cross(this.velocity);
+  calcRotation(dir) {
+    // let dot = this.velocity.normalize().dot(new Vector3(0, 0, 1));
+    // var rad = Math.acos(dot);
+    // var cross = new THREE.Vector3(0, 0, 1).cross(this.velocity);
 
-    if (cross.y <= 0) {
-      rad = Math.PI + (Math.PI - rad);
-    }
+    // if (cross.y <= 0) {
+    //   rad = Math.PI + (Math.PI - rad);
+    // }
 
     var q = new THREE.Quaternion();
-    q.setFromAxisAngle(this.boidObj.up, rad);
-    return q;
+    // q.setFromAxisAngle(this.boidObj.up, rad);
+    let d = new Vector3(1, 0, 0);
+    //d.copy(this.velocity);
+
+    let forward = new THREE.Vector4(0, 0, 1, 0);
+    forward.applyMatrix4(this.rootObj.matrix).normalize();
+    console.log(forward);
+    q.setFromUnitVectors(new THREE.Vector3(forward.x, forward.y, forward.z), d);
+    // this._forward = new THREE.Vector3(forward.x, forward.y, forward.z);
+
+    // let q2 = new THREE.Quaternion();
+    // q2.setFromAxisAngle(this.velocity, 0);
+    return q;//q.multiply(q2);
   }
 
   separation(boids: boidElement[]): THREE.Vector3 {
@@ -163,11 +175,12 @@ class boidElement {
     );
     this.rootObj.attach(this.accelerationHelper);
 
+
     this.velocityHelper = new THREE.ArrowHelper(
       this.velocity,
       this.rootObj.position,
       1,
-      0xff0000,
+      new THREE.Color(1,0,0),
       0.5,
       0.2
     );
@@ -229,8 +242,9 @@ class boidElement {
       .multiplyScalar(deltaTime)
       .add(this.acceleration.multiplyScalar(0.5 * deltaTime * deltaTime));
 
-    this.boidObj.rotation.setFromQuaternion(this.calcRotation());
-    this.rootObj.position.add(pos);
+    let p = pos.add(this.rootObj.position);
+    this.boidObj.lookAt(pos);
+    this.rootObj.position.set(p.x, p.y, p.z);
   }
 }
 
